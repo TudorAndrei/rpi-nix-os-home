@@ -1,0 +1,42 @@
+name: Build SD image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-sd-image
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Raspberry Pi image
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 360
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/determinate-nix-action@v3
+
+      - name: Free build disk space
+        run: |
+          sudo rm -rf /opt/hostedtoolcache /usr/local/lib/android /usr/share/dotnet
+          sudo apt-get clean
+          df -h /
+
+      - name: Build compressed SD image
+        run: scripts/build-image.sh --output-dir artifacts
+
+      - name: Upload image
+        uses: actions/upload-artifact@v7
+        with:
+          name: living-room-sd-image
+          path: artifacts/
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 14
