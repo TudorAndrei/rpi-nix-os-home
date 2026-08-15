@@ -89,7 +89,7 @@ if command -v git >/dev/null 2>&1 && git -C "$repo_root" rev-parse --is-inside-w
   fi
 fi
 
-docker info >/dev/null 2>&1 || fail "Docker Desktop is not running"
+docker info >/dev/null 2>&1 || fail "the Docker engine is not available"
 docker volume inspect "$store_volume" >/dev/null 2>&1 || docker volume create "$store_volume" >/dev/null
 
 exec "${docker_command[@]}"

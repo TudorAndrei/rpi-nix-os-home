@@ -12,7 +12,7 @@ The configuration provides:
 - Plasma Bigscreen as the automatic Wayland session
 - Automatic login for the `htpc` user
 - PipeWire audio through HDMI
-- Bluetooth with Xbox controller support through `xpadneo`
+- USB game-controller support
 - Moonlight for a Sunshine host
 - Kodi for local and network media
 - Chromium launchers for Stremio Web and Spotify Web
@@ -55,11 +55,13 @@ Before the first deployment, review these values:
 
 - Host name: `living-room`
 - User name: `htpc`
+- Initial local password: `raspberry`
 - Time zone: `Europe/Bucharest`
+- Regional formats: Romanian (`ro_RO.UTF-8`)
 - Keyboard layout: `us`
 - Root partition label: `NIXOS_SD`
 - Firmware partition label: `FIRMWARE`
-- Initial root partition size: 8 GiB, with automatic expansion on first boot
+- Root partition: automatically expands to use the SD card on first boot
 
 The image contains the public key from `keys/rpi.pub`. Its current fingerprint is:
 
@@ -67,7 +69,7 @@ The image contains the public key from `keys/rpi.pub`. Its current fingerprint i
 SHA256:YwIGjeDU+PibuMUBj9mDpVPXSweGb2ZsoHIaGxOk9Ss
 ```
 
-The matching private key is expected at `~/.ssh/rpi` on the administration computer. SSH password login and root login are disabled. The `htpc` user can use `sudo` without a password after SSH key authentication.
+The matching private key is expected at `~/.ssh/rpi` on the administration computer. SSH password login and root login are disabled. The initial password is only for local access. The `htpc` user can use `sudo` without a password after SSH key authentication.
 
 ## Build the image
 
@@ -89,9 +91,9 @@ Copy the generated `flake.lock` file to the repository and commit it. Later buil
 
 ## Local Docker build
 
-Docker Desktop can build the image locally on macOS. On Apple Silicon, the build uses a native ARM64 Linux container. The script keeps the Nix store in a Docker volume, so later builds can reuse downloaded and built files.
+Docker Desktop or OrbStack can build the image locally on macOS. On Apple Silicon, the build uses a native ARM64 Linux container. The script keeps the Nix store in a Docker volume, so later builds can reuse downloaded and built files.
 
-Give Docker Desktop at least 40 GB of disk space. Stage or commit all Nix files, and then run:
+Give the Docker engine at least 40 GB of disk space. Stage or commit all Nix files, and then run:
 
 ```bash
 git add .
@@ -136,28 +138,9 @@ ssh -i ~/.ssh/rpi htpc@living-room.local
 
 The Pi automatically logs the `htpc` user into Plasma Bigscreen on the attached TV.
 
-## Controller pairing
+## Controller connection
 
-Use a keyboard for the first pairing:
-
-```bash
-bluetoothctl
-power on
-agent on
-default-agent
-scan on
-```
-
-Put the controller in pairing mode. Use the address that `bluetoothctl` shows:
-
-```text
-pair AA:BB:CC:DD:EE:FF
-trust AA:BB:CC:DD:EE:FF
-connect AA:BB:CC:DD:EE:FF
-quit
-```
-
-BlueZ keeps trusted device data in `/var/lib/bluetooth`, so the controller can reconnect after a restart.
+Bluetooth support is disabled. Connect the controller to the Raspberry Pi with a USB cable or a supported USB wireless adapter.
 
 ## Moonlight
 
@@ -188,4 +171,3 @@ sudo nixos-rebuild switch --rollback
 - [Plasma Bigscreen](https://plasma-bigscreen.org/)
 - [Moonlight Qt](https://github.com/moonlight-stream/moonlight-qt)
 - [Sunshine](https://github.com/LizardByte/Sunshine)
-- [`xpadneo`](https://github.com/atar-axis/xpadneo)

@@ -56,6 +56,20 @@ mkKdeDerivation {
   extraCmakeFlags = [ "-DQT_FIND_PRIVATE_MODULES=1" ];
 
   postPatch = ''
+    # Qt 6.11 no longer exposes the QML registration functions through
+    # transitive includes.
+    substituteInPlace kcms/display/displaysettings.cpp \
+      --replace-fail '#include "displaysettings.h"' \
+      $'#include "displaysettings.h"\n#include <QtQml/qqml.h>'
+
+    substituteInPlace kcms/webapps/webappskcm.cpp \
+      --replace-fail '#include "webappskcm.h"' \
+      $'#include "webappskcm.h"\n#include <QtQml/qqml.h>'
+
+    substituteInPlace kcms/bluetooth/bluetooth.cpp \
+      --replace-fail '#include "bluetooth.h"' \
+      $'#include "bluetooth.h"\n#include <QtQml/qqml.h>'
+
     substituteInPlace bin/plasma-bigscreen-wayland.in \
       --replace-fail @KDE_INSTALL_FULL_LIBEXECDIR@ "${plasma-workspace}/libexec"
 

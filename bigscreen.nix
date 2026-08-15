@@ -24,7 +24,6 @@ in
 
   environment.systemPackages = with pkgs; [
     plasmaBigscreen
-    kdePackages.bluedevil
     kdePackages.kate
     kdePackages.konsole
     kdePackages.plasma-nm
