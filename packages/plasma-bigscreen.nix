@@ -76,6 +76,21 @@ mkKdeDerivation {
     substituteInPlace bin/plasma-bigscreen-wayland.desktop.cmake \
       --replace-fail @CMAKE_INSTALL_FULL_LIBEXECDIR@ "${plasma-workspace}/libexec"
 
+    # The current input handler uses the XDG Remote Desktop portal. Remove the
+    # old privileged Wayland interface request from its desktop declaration.
+    substituteInPlace inputhandler/org.kde.plasma.bigscreen.inputhandler.desktop.cmake \
+      --replace-fail \
+      'X-KDE-Wayland-Interfaces=org_kde_kwin_fake_input,org_kde_plasma_window_management' \
+      ""
+
+    # KDE Portal checks permissions by application ID. Bigscreen currently
+    # authorizes only the empty host ID, so the TV session still opens an
+    # approval dialog at each fresh boot.
+    substituteInPlace inputhandler/xdgremotedesktopsystem.cpp \
+      --replace-fail \
+      'QLatin1String(""), // app (empty for host applications)' \
+      'QStringLiteral("org.kde.plasma.bigscreen.inputhandler"), // app ID'
+
     substituteInPlace CMakeLists.txt \
       --replace-fail 'set(PROJECT_VERSION "6.5.80")' \
       'set(PROJECT_VERSION "${plasma-workspace.version}")'

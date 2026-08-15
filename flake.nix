@@ -16,30 +16,35 @@
       system = "aarch64-linux";
 
       mkLivingRoom =
-        extraModules:
+        hardwareModules: extraModules:
         nixpkgs.lib.nixosSystem {
           inherit system;
 
           specialArgs = { inherit inputs; };
 
-          modules = [
-            nixos-hardware.nixosModules.raspberry-pi-4
-            ./configuration.nix
-          ] ++ extraModules;
+          modules = hardwareModules ++ [ ./configuration.nix ] ++ extraModules;
         };
 
-      livingRoom = mkLivingRoom [ ];
-      livingRoomImage = mkLivingRoom [ ./sd-image.nix ];
+      raspberryPiModules = [
+        nixos-hardware.nixosModules.raspberry-pi-4
+        ./hardware.nix
+      ];
+
+      livingRoom = mkLivingRoom raspberryPiModules [ ];
+      livingRoomImage = mkLivingRoom raspberryPiModules [ ./sd-image.nix ];
+      livingRoomQemu = mkLivingRoom [ ] [ ./qemu.nix ];
     in
     {
       nixosConfigurations = {
         living-room = livingRoom;
         living-room-image = livingRoomImage;
+        living-room-qemu = livingRoomQemu;
       };
 
       packages.${system} = {
         default = livingRoomImage.config.system.build.sdImage;
         sd-image = livingRoomImage.config.system.build.sdImage;
+        qemu-bundle = livingRoomQemu.config.system.build.qemuBundle;
       };
     };
 }

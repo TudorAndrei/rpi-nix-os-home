@@ -17,6 +17,7 @@ The configuration provides:
 - Kodi for local and network media
 - Chromium launchers for Stremio Web and Spotify Web
 - NetworkManager, SSH, and `.local` host discovery
+- A separate QEMU target for full user-space tests on macOS
 
 ## Important limits
 
@@ -33,6 +34,7 @@ Controller input works in Plasma Bigscreen and Moonlight. Web pages can still ne
 ├── flake.nix
 ├── configuration.nix
 ├── hardware.nix
+├── qemu.nix
 ├── bigscreen.nix
 ├── media.nix
 ├── gaming.nix
@@ -45,6 +47,9 @@ Controller input works in Plasma Bigscreen and Moonlight. Web pages can still ne
 │   ├── build-image-docker.sh
 │   ├── build-image-github.sh
 │   ├── prepare-image-for-imager.sh
+│   ├── build-qemu.sh
+│   ├── build-qemu-docker.sh
+│   ├── run-qemu.sh
 │   ├── test-image-qemu.sh
 │   └── verify-image.sh
 └── packages
@@ -135,6 +140,54 @@ scripts/test-image-qemu.sh
 The QEMU test needs 16 GiB of temporary free space. It removes the temporary
 raw image when the test ends. QEMU does not emulate all Raspberry Pi hardware,
 so test the final image once on the physical Pi.
+
+## Full QEMU system test
+
+The `living-room-qemu` configuration uses the generic QEMU ARM `virt` machine.
+It shares the applications, services, user, SSH key, automatic login, and
+Plasma Bigscreen configuration with the Raspberry Pi system. It replaces the
+Raspberry Pi hardware layer with VirtIO disk, network, and graphics devices.
+
+Build the QEMU bundle with OrbStack or Docker:
+
+```bash
+scripts/build-qemu-docker.sh
+```
+
+The first build needs about 40 GiB of free disk space. The result is in
+`build/qemu`. Start it on macOS:
+
+```bash
+scripts/run-qemu.sh
+```
+
+The VM uses a temporary writable overlay. The base image in `build/qemu` does
+not change. Close QEMU to discard changes from that run.
+
+Connect through the forwarded SSH port:
+
+```bash
+ssh -i ~/.ssh/rpi -p 2222 htpc@127.0.0.1
+```
+
+If port 2222 is in use, select another port:
+
+```bash
+scripts/run-qemu.sh --ssh-port 2223
+ssh -i ~/.ssh/rpi -p 2223 htpc@127.0.0.1
+```
+
+For a serial-only boot test, use:
+
+```bash
+scripts/run-qemu.sh --headless
+```
+
+This VM can test the complete NixOS user space, SSH, automatic login, PipeWire,
+applications, and Plasma Bigscreen with a virtual GPU. It cannot test the
+Raspberry Pi VC4 display driver, Raspberry Pi firmware, physical HDMI audio,
+or the physical Ethernet controller. Keep `scripts/test-image-qemu.sh` for the
+Raspberry Pi firmware and U-Boot chain, and test HDMI on the physical Pi.
 
 The first image build compiles a Raspberry Pi kernel and Plasma Bigscreen if a binary substitute is not available. The cloud build can take a long time.
 

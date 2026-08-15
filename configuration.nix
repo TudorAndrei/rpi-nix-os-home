@@ -2,7 +2,6 @@
 
 {
   imports = [
-    ./hardware.nix
     ./bigscreen.nix
     ./media.nix
     ./gaming.nix
