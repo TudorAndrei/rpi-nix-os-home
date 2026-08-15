@@ -44,6 +44,7 @@ Controller input works in Plasma Bigscreen and Moonlight. Web pages can still ne
 │   ├── build-image.sh
 │   ├── build-image-docker.sh
 │   ├── build-image-github.sh
+│   ├── prepare-image-for-imager.sh
 │   ├── test-image-qemu.sh
 │   └── verify-image.sh
 └── packages
@@ -139,7 +140,17 @@ The first image build compiles a Raspberry Pi kernel and Plasma Bigscreen if a b
 
 ## Flash and boot
 
-Use Raspberry Pi Imager or Balena Etcher to flash the `.img.zst` file. You do not have to install NixOS first. The image already contains this complete configuration.
+Prepare an uncompressed image for Raspberry Pi Imager:
+
+```bash
+scripts/prepare-image-for-imager.sh
+```
+
+In Raspberry Pi Imager, select **Use custom**, then select
+`build/rpi4-htpc.img`. Do not select the `.img.zst` file. Some Raspberry Pi
+Imager versions write custom Zstandard files without decompressing them.
+
+You do not have to install NixOS first. The image already contains this complete configuration.
 
 Connect Ethernet before the first boot. After the Pi starts, connect with:
 
