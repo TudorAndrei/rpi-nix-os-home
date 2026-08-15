@@ -44,6 +44,7 @@ Controller input works in Plasma Bigscreen and Moonlight. Web pages can still ne
 │   ├── build-image.sh
 │   ├── build-image-docker.sh
 │   ├── build-image-github.sh
+│   ├── test-image-qemu.sh
 │   └── verify-image.sh
 └── packages
     └── plasma-bigscreen.nix
@@ -123,6 +124,16 @@ Verify a local build with:
 ```bash
 scripts/verify-image.sh build
 ```
+
+Test the Raspberry Pi 4 boot chain in QEMU before writing the SD card:
+
+```bash
+scripts/test-image-qemu.sh
+```
+
+The QEMU test needs 16 GiB of temporary free space. It removes the temporary
+raw image when the test ends. QEMU does not emulate all Raspberry Pi hardware,
+so test the final image once on the physical Pi.
 
 The first image build compiles a Raspberry Pi kernel and Plasma Bigscreen if a binary substitute is not available. The cloud build can take a long time.
 

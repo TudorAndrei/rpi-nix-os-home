@@ -83,7 +83,11 @@ images=("${repo_root}"/result/sd-image/*.img.zst)
 image_name="$(basename -- "${images[0]}")"
 image_path="${output_dir}/${image_name}"
 
-cp -L -- "${images[0]}" "$image_path"
+if [[ -e "$image_path" ]]; then
+  chmod u+w -- "$image_path"
+fi
+
+cp -fL -- "${images[0]}" "$image_path"
 cp -- "${repo_root}/flake.lock" "${output_dir}/flake.lock"
 (
   cd -- "$output_dir"
