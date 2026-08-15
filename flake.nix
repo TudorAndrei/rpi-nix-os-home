@@ -1,5 +1,5 @@
 {
-  description = "Raspberry Pi 5 living-room HTPC";
+  description = "Raspberry Pi 4 Model B living-room HTPC";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -23,7 +23,7 @@
           specialArgs = { inherit inputs; };
 
           modules = [
-            nixos-hardware.nixosModules.raspberry-pi-5
+            nixos-hardware.nixosModules.raspberry-pi-4
             ./configuration.nix
           ] ++ extraModules;
         };

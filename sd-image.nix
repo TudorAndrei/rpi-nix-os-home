@@ -9,7 +9,7 @@
 {
   imports = [ "${modulesPath}/installer/sd-card/sd-image-aarch64.nix" ];
 
-  image.baseName = "living-room-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}";
+  image.baseName = "living-room-rpi4-${config.system.nixos.label}-${pkgs.stdenv.hostPlatform.system}";
 
   sdImage = {
     compressImage = true;

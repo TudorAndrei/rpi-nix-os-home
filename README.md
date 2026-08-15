@@ -1,13 +1,13 @@
-# Raspberry Pi 5 Living-Room HTPC
+# Raspberry Pi 4 Model B Living-Room HTPC
 
-This repository contains a declarative NixOS configuration for a Raspberry Pi 5. The Pi starts a TV interface and provides media, music, and game-streaming applications.
+This repository contains a declarative NixOS configuration for a Raspberry Pi 4 Model B. The Pi starts a TV interface and provides media, music, and game-streaming applications.
 
 ## Current scope
 
 The configuration provides:
 
 - NixOS unstable for `aarch64-linux`
-- The Raspberry Pi 5 module from `nixos-hardware`
+- The Raspberry Pi 4 module from `nixos-hardware`
 - KDE Plasma 6 for maintenance
 - Plasma Bigscreen as the automatic Wayland session
 - Automatic login for the `htpc` user
@@ -167,7 +167,7 @@ sudo nixos-rebuild switch --rollback
 
 - [NixOS manual](https://nixos.org/manual/nixos/unstable/)
 - [NixOS Raspberry Pi installation guide](https://nix.dev/tutorials/nixos/installing-nixos-on-a-raspberry-pi.html)
-- [`nixos-hardware` Raspberry Pi 5 module](https://github.com/NixOS/nixos-hardware/tree/master/raspberry-pi/5)
+- [`nixos-hardware` Raspberry Pi 4 module](https://github.com/NixOS/nixos-hardware/tree/master/raspberry-pi/4)
 - [Plasma Bigscreen](https://plasma-bigscreen.org/)
 - [Moonlight Qt](https://github.com/moonlight-stream/moonlight-qt)
 - [Sunshine](https://github.com/LizardByte/Sunshine)

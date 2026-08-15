@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 
 {
   fileSystems."/" = {
@@ -22,18 +22,29 @@
     configurationLimit = 8;
   };
 
+  # Use the stable Raspberry Pi 4 kernel. It keeps the Pi-specific media and
+  # display support on the Linux 6.12 long-term support series.
+  boot.kernelPackages = pkgs.linuxPackages_rpi4;
+
   # The generic ARM image adds modules for many unrelated boards. Some of
   # those driver names are built into the Raspberry Pi kernel and cannot be
-  # copied as modules. Keep the initrd list specific to Raspberry Pi 5.
+  # copied as modules. Keep the initrd list specific to Raspberry Pi 4.
   boot.initrd.availableKernelModules = lib.mkForce [
     "usb-storage"
     "usbhid"
     "vc4"
-    "nvme"
     "pcie-brcmstb"
-    "clk-rp1"
-    "rp1"
+    "reset-raspberrypi"
   ];
+
+  boot.supportedFilesystems = lib.mkForce [
+    "ext4"
+    "vfat"
+    "cifs"
+    "nfs"
+  ];
+
+  hardware.raspberry-pi."4".bluetooth.enable = false;
 
   hardware = {
     enableRedistributableFirmware = true;
