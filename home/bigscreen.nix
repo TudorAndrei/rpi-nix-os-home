@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 
 let
   plasmaBigscreenBase =
@@ -34,11 +34,9 @@ let
         'export EGL_PLATFORM=wayland
 
 # Bigscreen sources /etc/profile, which removes the Nix paths on Raspberry Pi
-# OS. Plasma reads the same PATH before it starts KWin, so restore and import it.
+# OS. Restore them before Plasma starts.
 export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"
-if command -v systemctl >/dev/null 2>&1; then
-  systemctl --user import-environment PATH
-fi'
+'
 
       session="$out/share/wayland-sessions/${sessionName}.desktop"
       rm "$session"
@@ -59,6 +57,12 @@ in
   xdg.configFile."startkderc".text = ''
     [General]
     systemdBoot=false
+  '';
+
+  # Plasma imports PATH from the user service manager. Keep the Nix paths in
+  # that manager after its environment generators run.
+  xdg.configFile."environment.d/10-nix-path.conf".text = ''
+    PATH=${config.home.homeDirectory}/.nix-profile/bin:/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/games:/usr/games
   '';
 
   home.packages = with pkgs; [
