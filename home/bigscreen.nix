@@ -13,6 +13,13 @@ let
     exec ${kwin}/bin/kwin_wayland_wrapper --drm "$@"
   '';
 
+  kwinWaylandProbe = pkgs.writeShellScriptBin "kwin_wayland" ''
+    ${kwin}/bin/kwin_wayland "$@"
+    status=$?
+    /usr/bin/logger -t living-room-kwin "kwin_wayland exited with status $status"
+    exit "$status"
+  '';
+
   plasmaBigscreen = pkgs.symlinkJoin {
     name = "plasma-bigscreen-home-manager";
     paths = [ plasmaBigscreenBase ];
@@ -76,6 +83,7 @@ in
     plasmaBigscreen
     plasmaWorkspace
     (lib.hiPrio kwinDrmWrapper)
+    (lib.hiPrio kwinWaylandProbe)
     kwin
     kdePackages.kate
     kdePackages.kdeconnect-kde
