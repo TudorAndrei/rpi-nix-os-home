@@ -7,16 +7,6 @@ let
   kwin = pkgs.kdePackages.kwin;
   sessionName = "plasma-bigscreen-wayland";
 
-  plasmaUserUnits = pkgs.buildEnv {
-    name = "plasma-bigscreen-user-units";
-    paths = [
-      plasmaWorkspace
-      kwin
-    ];
-    pathsToLink = [ "/share/systemd/user" ];
-    ignoreCollisions = true;
-  };
-
   plasmaBigscreen = pkgs.symlinkJoin {
     name = "plasma-bigscreen-home-manager";
     paths = [ plasmaBigscreenBase ];
@@ -52,15 +42,17 @@ let
   };
 in
 {
-  # The Raspberry Pi OS user manager starts before the Nix session changes
-  # XDG_DATA_DIRS. Put the Plasma units in its standard user unit directory.
-  xdg.configFile."systemd/user" = {
-    source = "${plasmaUserUnits}/share/systemd/user";
-    recursive = true;
-  };
+  # Raspberry Pi OS starts its user service manager before it loads the Nix
+  # session environment. Use Plasma's supported direct start mode instead.
+  xdg.configFile."startkderc".text = ''
+    [General]
+    systemdBoot=false
+  '';
 
   home.packages = with pkgs; [
     plasmaBigscreen
+    plasmaWorkspace
+    kwin
     kdePackages.kate
     kdePackages.kdeconnect-kde
     kdePackages.konsole
