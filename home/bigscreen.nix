@@ -36,6 +36,7 @@ let
 # Bigscreen sources /etc/profile, which removes the Nix paths on Raspberry Pi
 # OS. Restore them before Plasma starts.
 export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"
+/usr/bin/systemctl --user import-environment PATH
 '
 
       session="$out/share/wayland-sessions/${sessionName}.desktop"
