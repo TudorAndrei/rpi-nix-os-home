@@ -31,7 +31,8 @@ sudo apt-get install --yes \
   openssh-server \
   pipewire \
   pipewire-pulse \
-  policykit-1 \
+  pkexec \
+  polkitd \
   udisks2 \
   wireplumber \
   xz-utils
