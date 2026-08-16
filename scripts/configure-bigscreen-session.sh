@@ -59,7 +59,7 @@ printf '%s\n' \
 
 sudo install -D -m 0644 "$temporary_config" "$lightdm_config"
 
-effective_config="$(lightdm --show-config)"
+effective_config="$(lightdm --show-config 2>&1)"
 grep -q "autologin-session=${session_name}" <<< "$effective_config" \
   || fail "LightDM did not accept the Bigscreen autologin session"
 grep -q "user-session=${session_name}" <<< "$effective_config" \
