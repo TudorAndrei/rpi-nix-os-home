@@ -46,7 +46,7 @@ export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"
       substituteInPlace "$session" \
         --replace-fail \
         '${plasmaBigscreenBase}/bin/plasma-bigscreen-wayland' \
-        "$out/bin/plasma-bigscreen-wayland"
+        '${config.home.homeDirectory}/.nix-profile/bin/plasma-bigscreen-wayland'
     '';
 
     passthru.providedSessions = [ sessionName ];
