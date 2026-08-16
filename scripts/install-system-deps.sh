@@ -37,7 +37,14 @@ sudo apt-get install --yes \
   wireplumber \
   xz-utils
 
-sudo hostnamectl set-hostname living-room
+hostname="living-room"
+
+sudo hostnamectl set-hostname "$hostname"
+if grep -qE '^127\.0\.1\.1[[:space:]]+' /etc/hosts; then
+  sudo sed -i -E "s/^127\\.0\\.1\\.1[[:space:]]+.*/127.0.1.1 ${hostname}/" /etc/hosts
+else
+  printf '127.0.1.1 %s\n' "$hostname" | sudo tee -a /etc/hosts >/dev/null
+fi
 sudo timedatectl set-timezone Europe/Bucharest
 sudo locale-gen en_US.UTF-8 ro_RO.UTF-8
 sudo systemctl enable --now ssh
