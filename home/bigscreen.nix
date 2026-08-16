@@ -1,7 +1,44 @@
 { pkgs, ... }:
 
 let
-  plasmaBigscreen = pkgs.kdePackages.callPackage ../packages/plasma-bigscreen.nix { };
+  plasmaBigscreenBase =
+    pkgs.kdePackages.callPackage ../packages/plasma-bigscreen.nix { };
+  plasmaWorkspace = pkgs.kdePackages.plasma-workspace;
+  sessionName = "plasma-bigscreen-wayland";
+
+  plasmaBigscreen = pkgs.symlinkJoin {
+    name = "plasma-bigscreen-home-manager";
+    paths = [ plasmaBigscreenBase ];
+
+    postBuild = ''
+      for program in plasma-bigscreen-common-env plasma-bigscreen-wayland; do
+        rm "$out/bin/$program"
+        cp "${plasmaBigscreenBase}/bin/$program" "$out/bin/$program"
+        chmod u+w "$out/bin/$program"
+      done
+
+      substituteInPlace "$out/bin/plasma-bigscreen-common-env" \
+        --replace-fail \
+        'QT_QPA_PLATFORM=offscreen plasma-bigscreen-envmanager --apply-settings' \
+        "QT_QPA_PLATFORM=offscreen $out/bin/plasma-bigscreen-envmanager --apply-settings"
+
+      substituteInPlace "$out/bin/plasma-bigscreen-wayland" \
+        --replace-fail \
+        'startplasma-wayland --xwayland' \
+        '${plasmaWorkspace}/bin/startplasma-wayland --xwayland'
+
+      session="$out/share/wayland-sessions/${sessionName}.desktop"
+      rm "$session"
+      cp "${plasmaBigscreenBase}/share/wayland-sessions/${sessionName}.desktop" "$session"
+      chmod u+w "$session"
+      substituteInPlace "$session" \
+        --replace-fail \
+        '${plasmaBigscreenBase}/bin/plasma-bigscreen-wayland' \
+        "$out/bin/plasma-bigscreen-wayland"
+    '';
+
+    passthru.providedSessions = [ sessionName ];
+  };
 in
 {
   home.packages = with pkgs; [
