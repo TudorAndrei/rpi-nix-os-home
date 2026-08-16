@@ -1,248 +1,162 @@
-# Raspberry Pi 4 Model B Living-Room HTPC
+# Raspberry Pi OS Living-Room HTPC
 
-This repository contains a declarative NixOS configuration for a Raspberry Pi 4 Model B. The Pi starts a TV interface and provides media, music, and game-streaming applications.
+This repository manages the living-room user environment on 64-bit Raspberry Pi OS. Raspberry Pi OS owns the kernel, firmware, boot process, display drivers, and system services. A pinned Home Manager flake owns the user applications, launchers, shell tools, and Plasma Bigscreen package.
 
-## Current scope
+The configuration does not use ad hoc Nix package installation commands. All Nix packages come from `flake.nix` and `home.nix`.
 
-The configuration provides:
+## Managed configuration
 
-- NixOS unstable for `aarch64-linux`
-- The Raspberry Pi 4 module from `nixos-hardware`
-- KDE Plasma 6 for maintenance
-- Plasma Bigscreen as the automatic Wayland session
-- Automatic login for the `htpc` user
-- PipeWire audio through HDMI
-- USB game-controller support
-- Moonlight for a Sunshine host
-- Kodi for local and network media
-- Chromium launchers for Stremio Web and Spotify Web
-- NetworkManager, SSH, and `.local` host discovery
-- A separate QEMU target for full user-space tests on macOS
+Home Manager provides:
 
-## Important limits
+- Plasma Bigscreen and supporting KDE applications
+- Moonlight
+- Kodi
+- Chromium
+- Stremio Web and Spotify Web launchers
+- MPV and VLC
+- Git, Helix, htop, PCI tools, USB tools, and controller test tools
+- Romanian regional formats and the Europe/Bucharest time zone
+- Generic Linux graphics integration
 
-Plasma Bigscreen is new again and can still have defects. The current `nixos-unstable` branch does not contain its package. This repository includes a pinned package definition from the Nixpkgs review work. Remove the local package when Bigscreen reaches `nixos-unstable`.
+Raspberry Pi OS provides:
 
-Stremio and Spotify do not have first-class ARM64 Linux desktop applications. The first version uses their web applications. Browser DRM support on ARM64 Linux can limit Spotify playback. A Spotify Connect service and a local Stremio service are later tasks.
+- Raspberry Pi kernel and firmware
+- HDMI and GPU drivers
+- LightDM
+- PipeWire and WirePlumber
+- SSH
+- Ethernet and DHCP
+- systemd, D-Bus, PolicyKit, and UDisks
 
-Controller input works in Plasma Bigscreen and Moonlight. Web pages can still need a keyboard, a mouse, or a browser extension.
+## Required system
+
+- Raspberry Pi 4 Model B
+- 64-bit Raspberry Pi OS
+- User name `user`
+- Ethernet connection
+- Internet access for the first application
+
+Confirm the architecture:
+
+```bash
+uname -m
+```
+
+The result must be `aarch64`.
+
+The flake uses the user name that is present on this Raspberry Pi: `user`.
+
+## First application
+
+Clone the repository on the Pi and run:
+
+```bash
+git clone git@github.com:TudorAndrei/rpi-nix-os-home.git
+cd rpi-nix-os-home
+scripts/bootstrap-rpi-os.sh
+```
+
+The bootstrap script:
+
+1. Installs the required Raspberry Pi OS packages.
+2. Sets the host name to `living-room`.
+3. Sets the time zone to `Europe/Bucharest`.
+4. Enables SSH and installs `keys/rpi.pub` for the current user.
+5. Disables the Bluetooth service when it exists.
+6. Installs Nix in multi-user mode when Nix is not present.
+7. Builds and activates the pinned Home Manager configuration.
+
+Home Manager can print a command named `non-nixos-gpu-setup` during the first activation. Run the exact `sudo /nix/store/.../non-nixos-gpu-setup` command that it prints. This command connects Nix applications to the Raspberry Pi OS graphics libraries. Reboot after this one-time step.
+
+## Apply configuration changes
+
+Run:
+
+```bash
+scripts/apply-home.sh
+```
+
+The script builds `homeConfigurations.user.activationPackage` from this flake and runs its activation program. It does not install unmanaged packages.
+
+Validate the complete flake with:
+
+```bash
+scripts/check-rpi-os.sh
+```
+
+## Plasma Bigscreen automatic login
+
+First, apply Home Manager and confirm that normal Raspberry Pi OS graphics work. Then enable the Bigscreen LightDM session:
+
+```bash
+scripts/configure-bigscreen-session.sh
+sudo reboot
+```
+
+To return to the normal Raspberry Pi OS session:
+
+```bash
+scripts/configure-bigscreen-session.sh --disable
+sudo reboot
+```
+
+The session script changes only these files:
+
+```text
+/usr/share/wayland-sessions/plasma-bigscreen-wayland.desktop
+/etc/lightdm/lightdm.conf.d/90-living-room-bigscreen.conf
+```
+
+## Update pinned inputs
+
+Update only when you want new package versions:
+
+```bash
+scripts/update-inputs.sh
+scripts/apply-home.sh
+```
+
+Commit `flake.lock` with the configuration. This makes later applications use the same package revisions.
 
 ## Repository layout
 
 ```text
 .
 ├── flake.nix
-├── configuration.nix
-├── hardware.nix
-├── qemu.nix
-├── bigscreen.nix
-├── media.nix
-├── gaming.nix
-├── networking.nix
-├── sd-image.nix
+├── flake.lock
+├── home.nix
+├── home
+│   ├── bigscreen.nix
+│   ├── gaming.nix
+│   └── media.nix
+├── packages
+│   └── plasma-bigscreen.nix
 ├── keys
 │   └── rpi.pub
-├── scripts
-│   ├── build-image.sh
-│   ├── build-image-docker.sh
-│   ├── build-image-github.sh
-│   ├── prepare-image-for-imager.sh
-│   ├── build-qemu.sh
-│   ├── build-qemu-docker.sh
-│   ├── run-qemu.sh
-│   ├── test-image-qemu.sh
-│   └── verify-image.sh
-└── packages
-    └── plasma-bigscreen.nix
+└── scripts
+    ├── bootstrap-rpi-os.sh
+    ├── install-nix.sh
+    ├── install-system-deps.sh
+    ├── apply-home.sh
+    ├── check-rpi-os.sh
+    ├── configure-bigscreen-session.sh
+    └── update-inputs.sh
 ```
 
-## Values to review
+The old NixOS image modules and image-build scripts remain in the repository for reference. The new flake does not import them.
 
-Before the first deployment, review these values:
+## Important limits
 
-- Host name: `living-room`
-- User name: `htpc`
-- Initial local password: `raspberry`
-- Time zone: `Europe/Bucharest`
-- Regional formats: Romanian (`ro_RO.UTF-8`)
-- Keyboard layout: `us`
-- Root partition label: `NIXOS_SD`
-- Firmware partition label: `FIRMWARE`
-- Root partition: automatically expands to use the SD card on first boot
-
-The image contains the public key from `keys/rpi.pub`. Its current fingerprint is:
-
-```text
-SHA256:YwIGjeDU+PibuMUBj9mDpVPXSweGb2ZsoHIaGxOk9Ss
-```
-
-The matching private key is expected at `~/.ssh/rpi` on the administration computer. SSH password login and root login are disabled. The initial password is only for local access. The `htpc` user can use `sudo` without a password after SSH key authentication.
-
-## Build the image
-
-This repository has a manual GitHub Actions workflow. It uses a native ARM64 Linux runner, creates `flake.lock`, builds the complete image, and uploads the compressed image as a private workflow artifact.
-
-Commit and push the files. Then run:
-
-```bash
-scripts/build-image-github.sh
-```
-
-The `build` directory will contain:
-
-- A compressed `.img.zst` SD image
-- `flake.lock`
-- `SHA256SUMS`
-
-Copy the generated `flake.lock` file to the repository and commit it. Later builds will then use the same inputs.
-
-## Local Docker build
-
-Docker Desktop or OrbStack can build the image locally on macOS. On Apple Silicon, the build uses a native ARM64 Linux container. The script keeps the Nix store in a Docker volume, so later builds can reuse downloaded and built files.
-
-Give the Docker engine at least 40 GB of disk space. Stage or commit all Nix files, and then run:
-
-```bash
-git add .
-scripts/build-image-docker.sh
-```
-
-To inspect the Docker command without a build, run:
-
-```bash
-scripts/build-image-docker.sh --dry-run
-```
-
-To get machine-readable final output, run:
-
-```bash
-scripts/build-image-docker.sh --output json
-```
-
-To build directly on an AArch64 Linux system that has Nix, run:
-
-```bash
-scripts/build-image.sh
-```
-
-Verify a local build with:
-
-```bash
-scripts/verify-image.sh build
-```
-
-Test the Raspberry Pi 4 boot chain in QEMU before writing the SD card:
-
-```bash
-scripts/test-image-qemu.sh
-```
-
-The QEMU test needs 16 GiB of temporary free space. It removes the temporary
-raw image when the test ends. QEMU does not emulate all Raspberry Pi hardware,
-so test the final image once on the physical Pi.
-
-## Full QEMU system test
-
-The `living-room-qemu` configuration uses the generic QEMU ARM `virt` machine.
-It shares the applications, services, user, SSH key, automatic login, and
-Plasma Bigscreen configuration with the Raspberry Pi system. It replaces the
-Raspberry Pi hardware layer with VirtIO disk, network, and graphics devices.
-
-Build the QEMU bundle with OrbStack or Docker:
-
-```bash
-scripts/build-qemu-docker.sh
-```
-
-The first build needs about 40 GiB of free disk space. The result is in
-`build/qemu`. Start it on macOS:
-
-```bash
-scripts/run-qemu.sh
-```
-
-The VM uses a temporary writable overlay. The base image in `build/qemu` does
-not change. Close QEMU to discard changes from that run.
-
-Connect through the forwarded SSH port:
-
-```bash
-ssh -i ~/.ssh/rpi -p 2222 htpc@127.0.0.1
-```
-
-If port 2222 is in use, select another port:
-
-```bash
-scripts/run-qemu.sh --ssh-port 2223
-ssh -i ~/.ssh/rpi -p 2223 htpc@127.0.0.1
-```
-
-For a serial-only boot test, use:
-
-```bash
-scripts/run-qemu.sh --headless
-```
-
-This VM can test the complete NixOS user space, SSH, automatic login, PipeWire,
-applications, and Plasma Bigscreen with a virtual GPU. It cannot test the
-Raspberry Pi VC4 display driver, Raspberry Pi firmware, physical HDMI audio,
-or the physical Ethernet controller. Keep `scripts/test-image-qemu.sh` for the
-Raspberry Pi firmware and U-Boot chain, and test HDMI on the physical Pi.
-
-The first image build compiles a Raspberry Pi kernel and Plasma Bigscreen if a binary substitute is not available. The cloud build can take a long time.
-
-## Flash and boot
-
-Prepare an uncompressed image for Raspberry Pi Imager:
-
-```bash
-scripts/prepare-image-for-imager.sh
-```
-
-In Raspberry Pi Imager, select **Use custom**, then select
-`build/rpi4-htpc.img`. Do not select the `.img.zst` file. Some Raspberry Pi
-Imager versions write custom Zstandard files without decompressing them.
-
-You do not have to install NixOS first. The image already contains this complete configuration.
-
-Connect Ethernet before the first boot. After the Pi starts, connect with:
-
-```bash
-ssh -i ~/.ssh/rpi htpc@living-room.local
-```
-
-The Pi automatically logs the `htpc` user into Plasma Bigscreen on the attached TV.
-
-## Controller connection
-
-Bluetooth support is disabled. Connect the controller to the Raspberry Pi with a USB cable or a supported USB wireless adapter.
-
-## Moonlight
-
-Install Sunshine on the gaming PC. Connect both devices to the same wired network. Start Moonlight on the Pi, add the gaming PC, and complete the PIN process in Sunshine.
-
-Start with 1080p at 60 frames per second. Check latency and dropped frames before you increase the resolution or bit rate.
-
-## Update and rollback
-
-Update the lock file and build a new generation on the Pi:
-
-```bash
-nix flake update
-sudo nixos-rebuild switch --flake .#living-room
-```
-
-If the new generation has a problem, select an older generation in the boot menu. You can also run:
-
-```bash
-sudo nixos-rebuild switch --rollback
-```
+- Stremio and Spotify use Chromium web applications.
+- Browser DRM support can limit Spotify playback on ARM64 Linux.
+- Moonlight runs without the NixOS-only real-time priority wrapper.
+- Home Manager does not change Raspberry Pi firmware or kernel settings.
+- Test Bigscreen before you make it the automatic session.
 
 ## Primary sources
 
-- [NixOS manual](https://nixos.org/manual/nixos/unstable/)
-- [NixOS Raspberry Pi installation guide](https://nix.dev/tutorials/nixos/installing-nixos-on-a-raspberry-pi.html)
-- [`nixos-hardware` Raspberry Pi 4 module](https://github.com/NixOS/nixos-hardware/tree/master/raspberry-pi/4)
+- [Home Manager standalone flakes](https://nix-community.github.io/home-manager/index.xhtml#sec-flakes-standalone)
+- [Home Manager GPU support on non-NixOS Linux](https://github.com/nix-community/home-manager/blob/master/docs/manual/usage/gpu-non-nixos.md)
+- [Official Nix installer](https://nix.dev/install-nix)
 - [Plasma Bigscreen](https://plasma-bigscreen.org/)
 - [Moonlight Qt](https://github.com/moonlight-stream/moonlight-qt)
-- [Sunshine](https://github.com/LizardByte/Sunshine)

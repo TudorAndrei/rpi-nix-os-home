@@ -64,7 +64,8 @@ docker_command=(
   --volume "${store_volume}:/nix"
   --volume "${repo_root}:/workspace"
   --workdir /workspace
-  --env "NIX_CONFIG=experimental-features = nix-command flakes"
+  --env "NIX_CONFIG=experimental-features = nix-command flakes
+max-jobs = 4"
   "$docker_image"
   /workspace/scripts/build-image.sh
   --output-dir /workspace/build

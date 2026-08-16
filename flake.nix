@@ -1,50 +1,49 @@
 {
-  description = "Raspberry Pi 4 Model B living-room HTPC";
+  description = "Raspberry Pi OS living-room HTPC home configuration";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    nixos-hardware = {
-      url = "github:NixOS/nixos-hardware";
+    home-manager = {
+      url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
   outputs =
-    inputs@{ nixpkgs, nixos-hardware, ... }:
+    inputs@{ nixpkgs, home-manager, ... }:
     let
       system = "aarch64-linux";
+      username = "user";
 
-      mkLivingRoom =
-        hardwareModules: extraModules:
-        nixpkgs.lib.nixosSystem {
-          inherit system;
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
 
-          specialArgs = { inherit inputs; };
+      homeConfiguration = home-manager.lib.homeManagerConfiguration {
+        inherit pkgs;
 
-          modules = hardwareModules ++ [ ./configuration.nix ] ++ extraModules;
-        };
+        extraSpecialArgs = { inherit inputs; };
 
-      raspberryPiModules = [
-        nixos-hardware.nixosModules.raspberry-pi-4
-        ./hardware.nix
-      ];
-
-      livingRoom = mkLivingRoom raspberryPiModules [ ];
-      livingRoomImage = mkLivingRoom raspberryPiModules [ ./sd-image.nix ];
-      livingRoomQemu = mkLivingRoom [ ] [ ./qemu.nix ];
+        modules = [
+          ./home.nix
+          {
+            home = {
+              inherit username;
+              homeDirectory = "/home/${username}";
+            };
+          }
+        ];
+      };
     in
     {
-      nixosConfigurations = {
-        living-room = livingRoom;
-        living-room-image = livingRoomImage;
-        living-room-qemu = livingRoomQemu;
-      };
+      homeConfigurations.${username} = homeConfiguration;
 
-      packages.${system} = {
-        default = livingRoomImage.config.system.build.sdImage;
-        sd-image = livingRoomImage.config.system.build.sdImage;
-        qemu-bundle = livingRoomQemu.config.system.build.qemuBundle;
-      };
+      packages.${system}.plasma-bigscreen =
+        pkgs.kdePackages.callPackage ./packages/plasma-bigscreen.nix { };
+
+      checks.${system}.home = homeConfiguration.activationPackage;
+      formatter.${system} = pkgs.nixfmt-tree;
     };
 }

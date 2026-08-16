@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ lib, ... }:
 
 {
   fileSystems."/" = {
@@ -21,10 +21,6 @@
     enable = true;
     configurationLimit = 8;
   };
-
-  # Use the stable Raspberry Pi 4 kernel. It keeps the Pi-specific media and
-  # display support on the Linux 6.12 long-term support series.
-  boot.kernelPackages = pkgs.linuxPackages_rpi4;
 
   # The generic ARM image adds modules for many unrelated boards. Some of
   # those driver names are built into the Raspberry Pi kernel and cannot be
