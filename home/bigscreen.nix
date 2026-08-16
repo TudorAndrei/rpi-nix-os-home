@@ -33,8 +33,9 @@ let
         'export EGL_PLATFORM=wayland' \
         'export EGL_PLATFORM=wayland
 
-# LightDM gives the user service manager a system-only PATH. Plasma reads that
-# PATH before it starts KWin, so update it after the Nix environment is loaded.
+# Bigscreen sources /etc/profile, which removes the Nix paths on Raspberry Pi
+# OS. Plasma reads the same PATH before it starts KWin, so restore and import it.
+export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"
 if command -v systemctl >/dev/null 2>&1; then
   systemctl --user import-environment PATH
 fi'
