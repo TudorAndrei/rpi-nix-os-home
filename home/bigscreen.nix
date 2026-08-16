@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   plasmaBigscreenBase =
@@ -6,6 +6,10 @@ let
   plasmaWorkspace = pkgs.kdePackages.plasma-workspace;
   kwin = pkgs.kdePackages.kwin;
   sessionName = "plasma-bigscreen-wayland";
+
+  kwinDrmWrapper = pkgs.writeShellScriptBin "kwin_wayland_wrapper" ''
+    exec ${kwin}/bin/kwin_wayland_wrapper --drm "$@"
+  '';
 
   plasmaBigscreen = pkgs.symlinkJoin {
     name = "plasma-bigscreen-home-manager";
@@ -69,6 +73,7 @@ in
   home.packages = with pkgs; [
     plasmaBigscreen
     plasmaWorkspace
+    (lib.hiPrio kwinDrmWrapper)
     kwin
     kdePackages.kate
     kdePackages.kdeconnect-kde
