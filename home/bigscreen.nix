@@ -28,6 +28,17 @@ let
         'startplasma-wayland --xwayland' \
         '${plasmaWorkspace}/bin/startplasma-wayland --xwayland'
 
+      substituteInPlace "$out/bin/plasma-bigscreen-wayland" \
+        --replace-fail \
+        'export EGL_PLATFORM=wayland' \
+        'export EGL_PLATFORM=wayland
+
+# LightDM gives the user service manager a system-only PATH. Plasma reads that
+# PATH before it starts KWin, so update it after the Nix environment is loaded.
+if command -v systemctl >/dev/null 2>&1; then
+  systemctl --user import-environment PATH
+fi'
+
       session="$out/share/wayland-sessions/${sessionName}.desktop"
       rm "$session"
       cp "${plasmaBigscreenBase}/share/wayland-sessions/${sessionName}.desktop" "$session"
