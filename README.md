@@ -105,7 +105,12 @@ The session script changes only these files:
 ```text
 /usr/share/wayland-sessions/plasma-bigscreen-wayland.desktop
 /etc/lightdm/lightdm.conf.d/90-living-room-bigscreen.conf
+/etc/lightdm/lightdm.conf
 ```
+
+The script saves the original main LightDM configuration as
+`/etc/lightdm/lightdm.conf.living-room-backup`. The `--disable` action restores
+that file.
 
 ## Update pinned inputs
 

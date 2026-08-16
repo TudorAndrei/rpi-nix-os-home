@@ -46,7 +46,15 @@ else
   printf '127.0.1.1 %s\n' "$hostname" | sudo tee -a /etc/hosts >/dev/null
 fi
 sudo timedatectl set-timezone Europe/Bucharest
-sudo locale-gen en_US.UTF-8 ro_RO.UTF-8
+sudo sed -i -E \
+  -e 's/^#[[:space:]]*(en_US\.UTF-8[[:space:]]+UTF-8)/\1/' \
+  -e 's/^#[[:space:]]*(ro_RO\.UTF-8[[:space:]]+UTF-8)/\1/' \
+  /etc/locale.gen
+grep -qE '^en_US\.UTF-8[[:space:]]+UTF-8' /etc/locale.gen \
+  || printf '%s\n' 'en_US.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen >/dev/null
+grep -qE '^ro_RO\.UTF-8[[:space:]]+UTF-8' /etc/locale.gen \
+  || printf '%s\n' 'ro_RO.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen >/dev/null
+sudo locale-gen
 sudo systemctl enable --now ssh
 
 install -d -m 0700 "${HOME}/.ssh"
