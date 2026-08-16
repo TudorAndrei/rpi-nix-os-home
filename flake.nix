@@ -40,8 +40,11 @@
     {
       homeConfigurations.${username} = homeConfiguration;
 
-      packages.${system}.plasma-bigscreen =
-        pkgs.kdePackages.callPackage ./packages/plasma-bigscreen.nix { };
+      packages.${system} = {
+        home-manager = homeConfiguration.config.programs.home-manager.package;
+        plasma-bigscreen =
+          pkgs.kdePackages.callPackage ./packages/plasma-bigscreen.nix { };
+      };
 
       checks.${system}.home = homeConfiguration.activationPackage;
       formatter.${system} = pkgs.nixfmt-tree;

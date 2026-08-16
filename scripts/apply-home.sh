@@ -22,13 +22,18 @@ command -v nix >/dev/null 2>&1 || fail "Nix is not available; run scripts/instal
   || fail "this flake is configured for user '$configuration', but the current user is '$(id -un)'"
 
 flake_ref="path:${repo_root}"
-activation_package="$(
+home_manager_package="$(
   nix --extra-experimental-features "nix-command flakes" build \
     --no-link \
     --print-out-paths \
-    "${flake_ref}#homeConfigurations.${configuration}.activationPackage"
+    "${flake_ref}#home-manager"
 )"
 
-"${activation_package}/activate"
+export NIX_CONFIG="${NIX_CONFIG:-}"$'\nexperimental-features = nix-command flakes'
+backup_extension="hm-backup-$(date -u +%Y%m%dT%H%M%SZ)"
+
+"${home_manager_package}/bin/home-manager" switch \
+  -b "$backup_extension" \
+  --flake "${flake_ref}#${configuration}"
 
 printf 'Home Manager configuration applied from %s\n' "$repo_root"

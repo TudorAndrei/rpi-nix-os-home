@@ -76,7 +76,7 @@ Run:
 scripts/apply-home.sh
 ```
 
-The script builds `homeConfigurations.user.activationPackage` from this flake and runs its activation program. It does not install unmanaged packages.
+The script runs the pinned Home Manager program from this flake. Existing user files receive a dated backup suffix before Home Manager replaces them. The script does not install unmanaged packages.
 
 Validate the complete flake with:
 
