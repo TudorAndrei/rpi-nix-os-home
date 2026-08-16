@@ -4,7 +4,18 @@ let
   plasmaBigscreenBase =
     pkgs.kdePackages.callPackage ../packages/plasma-bigscreen.nix { };
   plasmaWorkspace = pkgs.kdePackages.plasma-workspace;
+  kwin = pkgs.kdePackages.kwin;
   sessionName = "plasma-bigscreen-wayland";
+
+  plasmaUserUnits = pkgs.buildEnv {
+    name = "plasma-bigscreen-user-units";
+    paths = [
+      plasmaWorkspace
+      kwin
+    ];
+    pathsToLink = [ "/share/systemd/user" ];
+    ignoreCollisions = true;
+  };
 
   plasmaBigscreen = pkgs.symlinkJoin {
     name = "plasma-bigscreen-home-manager";
@@ -41,6 +52,13 @@ let
   };
 in
 {
+  # The Raspberry Pi OS user manager starts before the Nix session changes
+  # XDG_DATA_DIRS. Put the Plasma units in its standard user unit directory.
+  xdg.configFile."systemd/user" = {
+    source = "${plasmaUserUnits}/share/systemd/user";
+    recursive = true;
+  };
+
   home.packages = with pkgs; [
     plasmaBigscreen
     kdePackages.kate
