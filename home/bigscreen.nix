@@ -8,6 +8,8 @@ let
   sessionName = "plasma-bigscreen-wayland";
 
   kwinDrmWrapper = pkgs.writeShellScriptBin "kwin_wayland_wrapper" ''
+    export KWIN_DRM_DEVICES=/dev/dri/card1
+    export QT_LOGGING_RULES="kwin_core.debug=true;kwin_wayland_drm.debug=true"
     exec ${kwin}/bin/kwin_wayland_wrapper --drm "$@"
   '';
 
