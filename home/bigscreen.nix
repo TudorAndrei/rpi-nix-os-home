@@ -14,7 +14,20 @@ let
   '';
 
   kwinWaylandProbe = pkgs.writeShellScriptBin "kwin_wayland" ''
-    ${kwin}/bin/kwin_wayland "$@"
+    probe_stamp=/tmp/living-room-kwin-gdb-once
+    if [[ ! -e "$probe_stamp" ]]; then
+      touch "$probe_stamp"
+      /usr/bin/gdb \
+        --batch \
+        --ex "set pagination off" \
+        --ex "set debuginfod enabled off" \
+        --ex run \
+        --ex "thread apply all backtrace" \
+        --args ${kwin}/bin/kwin_wayland "$@" \
+        >/tmp/living-room-kwin-gdb.log 2>&1
+    else
+      ${kwin}/bin/kwin_wayland "$@"
+    fi
     status=$?
     /usr/bin/logger -t living-room-kwin "kwin_wayland exited with status $status"
     exit "$status"
